@@ -1,5 +1,7 @@
 # stc-knowledge-propose-system
 
+A teszt számológép alkalmazás a /calc URL-en érhető el
+
 **Black Code formatting plugin:**
 https://github.com/psf/black
 
