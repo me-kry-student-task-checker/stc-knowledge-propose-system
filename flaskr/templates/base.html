@@ -1,0 +1,28 @@
+<!doctype html>
+<title>Calculator</title>
+
+<section class="content">
+  <header>
+    <h1>Calculator</h1>
+  </header>
+  {% for message in get_flashed_messages() %}
+    <div class="flash">{{ message }}</div>
+  {% endfor %}
+
+  <form method="post">
+    <label for="numberA">Number A: </label>
+    <input type="number" name="numberA" id="numberA" required>
+    <label for="numberB">Number B: </label>
+    <input type="number" name="numberB" id="numberB" required>
+    <select name="operation">
+        <option value="add" SELECTED>add</option>
+        <option value="minus">minus</option>
+        <option value="multiple">multiple</option>
+        <option value="divide">divide</option>
+    </select>
+    <br>
+    <input type="submit" value="Calculate">
+  </form>
+
+  <a>Result: {{session["result"]}}</a>
+</section>
