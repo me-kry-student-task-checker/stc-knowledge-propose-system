@@ -1,5 +1,7 @@
 # stc-knowledge-propose-system
 
+Alkalmazás telepítése: pip install -e .
+
 A teszt számológép alkalmazás a /calc URL-en érhető el
 
 **Black Code formatting plugin:**
