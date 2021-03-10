@@ -2,7 +2,7 @@ from flask import (
     Blueprint,
     request
 )
-from . import calculate_service
+from flaskr.service import calculate_service
 
 result = None
 bp = Blueprint("calc", __name__, url_prefix="/calc")
