@@ -1,6 +1,7 @@
+from flaskr.controller import validation
 from flask import (
     Blueprint,
-    request
+    request, abort
 )
 from flaskr.service import calculate_service
 
@@ -16,9 +17,16 @@ def calculate():
     operation = content["operation"]
 
     error = None
-    if not numberA:
-        error = "Number A is required"
-    elif not numberB:
-        error = "Number B is required"
 
-    return calculate_service.calculate(numberA, numberB, operation)
+    if content is None:
+    abort(404)
+     elif numberA.strip().isdigit():
+        return calculate_service.calculate(numberA, numberB, operation)
+    elif numberB.strip().isdigit():
+
+    else:
+    abort(403)
+
+
+
+

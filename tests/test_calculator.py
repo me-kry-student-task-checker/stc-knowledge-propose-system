@@ -1,6 +1,6 @@
 def test_add(client):
-    response = client.post("/calc/", json={"numberA": 30, "numberB": 5, "operation": "add"})
-    assert response.json["result"] == 35
+    response = client.post("/calc/", json={"numberA": 5, "numberB": 5, "operation": "add"})
+    assert response.json["result"] == 10
 
 
 def test_minus(client):
@@ -16,3 +16,5 @@ def test_multiple(client):
 def test_divide(client):
     response = client.post("/calc/", json={"numberA": 30, "numberB": 5, "operation": "divide"})
     assert response.json["result"] == 6
+
+
