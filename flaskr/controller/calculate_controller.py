@@ -23,3 +23,8 @@ def calculate():
         abort(400, "Operation must be add, minus, multiple or divide!")
 
     return calculate_service.calculate(numberA, numberB, operation)
+
+
+@bp.route("/logs/", methods=["GET"])
+def get_calculations():
+    return calculate_service.get_calculations()

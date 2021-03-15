@@ -1,4 +1,5 @@
 from flask import jsonify, abort
+from flaskr.dao import calculate_dao
 
 
 def calculate(numberA, numberB, operation):
@@ -16,4 +17,10 @@ def calculate(numberA, numberB, operation):
     elif operation == "divide":
         result = numberA / numberB
 
+    calculate_dao.insert_result(numberA, numberB, operation, result)
+
     return jsonify({"result": result})
+
+
+def get_calculations():
+    return jsonify(calculate_dao.get_calculations())

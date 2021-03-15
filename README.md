@@ -10,7 +10,7 @@ https://github.com/psf/black
 Telepítési útmutató Pycharmhoz:
 https://github.com/psf/black/blob/master/docs/editor_integration.md
 
-1. Settings/Project/Python interperter mappában black csomag telepítése
+1. Settings/Project/Python interperter menüben black csomag telepítése
 2. Settings/Tools/External Tools menüben black hozzáadása tool-ként (elérési útvonal "{projekt mappa}/venv/scripts/black.exe")
 
 **OpenAPI libraryk:**
