@@ -7,6 +7,7 @@ from flaskr.service import calculate_service
 
 result = None
 bp = Blueprint("calc", __name__, url_prefix="/calc")
+operation_list = ["add", "minus", "multiple", "divide"]
 
 
 @bp.route("/", methods=["POST"])
@@ -18,14 +19,14 @@ def calculate():
 
     error = None
 
-    if content is None:
-    abort(404)
-     elif numberA.strip().isdigit():
-        return calculate_service.calculate(numberA, numberB, operation)
-    elif numberB.strip().isdigit():
+    if not isinstance(numberA, int) and not isinstance(numberA, float):
+        abort(400, "First argument must be a number!")
+    elif not isinstance(numberB, int) and not isinstance(numberB, float):
+        abort(400, "Second argument must be a number!")
+    elif operation not in operation_list:
+        abort(400, "Operation must be add, minus, multiple or divide!")
 
-    else:
-    abort(403)
+    return calculate_service.calculate(numberA, numberB, operation)
 
 
 
