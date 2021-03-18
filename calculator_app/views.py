@@ -25,7 +25,6 @@ def get_calculations(request):
 
 
 @api_view(["POST"])
-@parser_classes([JSONParser])
 def calculate(request):
     data = {"numberA": request.data.get("numberA"), "numberB": request.data.get("numberB"),
             "operation": request.data.get("operation")}

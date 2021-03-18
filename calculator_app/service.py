@@ -1,6 +1,8 @@
 from rest_framework import status
 from rest_framework.response import Response
 
+from calculator_app.serializers import CalculationSerializer
+
 
 def calculate(data):
     result = None
@@ -20,6 +22,9 @@ def calculate(data):
     elif operation == "divide":
         result = numberA / numberB
 
-    ##calculate_dao.insert_result(numberA, numberB, operation, result)
+    db_data = {"numbera": numberA, "numberb": numberB, "operation": operation, "result": result}
+    serializer = CalculationSerializer(data=db_data)
+    if serializer.is_valid():
+        serializer.save()
 
     return {"result": result}
