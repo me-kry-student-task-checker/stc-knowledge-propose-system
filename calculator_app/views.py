@@ -37,6 +37,10 @@ def calculate(request):
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
     result = calculator_app.service.calculate(data)
+
+    if isinstance(result, Response):
+        return result
+
     return Response(result)
 
 
