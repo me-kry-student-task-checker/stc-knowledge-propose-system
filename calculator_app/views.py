@@ -1,20 +1,11 @@
 from rest_framework import status
-from rest_framework.decorators import api_view, parser_classes
-from rest_framework.parsers import JSONParser
+from rest_framework.decorators import api_view
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
 from calculator_app.models import Calculations
 from calculator_app.serializers import CalculationSerializer
-import calculator_app.service
-
-operation_list = ["add", "minus", "multiple", "divide"]
-
-# def get_calculations(request):
-#    calculations = Calculations.objects.all()
-#    context = {
-#        'calculations': calculations
-#    }
-#    return context
+from calculator_app import service
 
 
 @api_view(["GET"])
@@ -27,19 +18,13 @@ def get_calculations(request):
 @api_view(["POST"])
 def calculate(request):
     data = {"numberA": request.data.get("numberA"), "numberB": request.data.get("numberB"),
-            "operation": request.data.get("operation")}
+            "operation": request.data.get("operation"), "result": None}
 
-    if not isinstance(data["numberA"], int) and not isinstance(data["numberA"], float):
+    try:
+        service.validate_input(data)
+        result = service.calculate(data)
+    except (ZeroDivisionError, ValidationError) as e:
         return Response(status=status.HTTP_400_BAD_REQUEST)
-    elif not isinstance(data["numberB"], int) and not isinstance(data["numberB"], float):
-        return Response(status=status.HTTP_400_BAD_REQUEST)
-    elif data["operation"] not in operation_list:
-        return Response(status=status.HTTP_400_BAD_REQUEST)
-
-    result = calculator_app.service.calculate(data)
-
-    if isinstance(result, Response):
-        return result
 
     return Response(result)
 
