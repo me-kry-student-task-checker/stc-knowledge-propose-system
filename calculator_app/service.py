@@ -1,7 +1,14 @@
 from rest_framework.exceptions import ValidationError
-
 from calculator_app.serializers import CalculationSerializer
+import tensorflow
+import tensorflow.keras as keras
+import numpy
+import os
+from calculator.settings import BASE_DIR
 
+file_path = os.path.join(BASE_DIR, 'calculator_app/model')
+
+model = keras.models.load_model(file_path)
 
 def calculate(data):
     result = None

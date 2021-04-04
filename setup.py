@@ -7,6 +7,7 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=[
-        "mysql-connector-python", "django", "djangorestframework"
+        "mysql-connector-python", "django", "djangorestframework",
+        "tensorflow", "numpy"
     ],
 )
