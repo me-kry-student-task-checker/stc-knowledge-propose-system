@@ -8,6 +8,6 @@ setup(
     zip_safe=False,
     install_requires=[
         "mysql-connector-python", "django", "djangorestframework",
-        "tensorflow", "numpy"
+        "tf-nightly", "numpy", "pandas"
     ],
 )

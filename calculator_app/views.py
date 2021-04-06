@@ -8,6 +8,19 @@ from calculator_app.serializers import CalculationSerializer
 from calculator_app import service
 
 
+@api_view(["POST"])
+def recommend_books(request):
+    user_id = request.data.get("userid")
+
+    try:
+        service.validate_bookuser_input(user_id)
+        result = service.recommend_books(user_id)
+    except (ZeroDivisionError, ValidationError) as e:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    return Response(result)
+
+
 @api_view(["GET"])
 def get_calculations(request):
     calculations = Calculations.objects.all()
@@ -27,7 +40,3 @@ def calculate(request):
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
     return Response(result)
-
-
-
-
