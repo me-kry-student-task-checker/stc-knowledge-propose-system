@@ -84,6 +84,9 @@ DATABASES = {
         'OPTIONS': {
             'autocommit': True,
         },
+        'TEST': {
+            'NAME': 'test_db',
+        },
     }
 }
 

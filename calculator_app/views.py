@@ -15,7 +15,7 @@ def recommend_books(request):
     try:
         service.validate_bookuser_input(user_id)
         result = service.recommend_books(user_id)
-    except (ZeroDivisionError, ValidationError) as e:
+    except ValidationError as e:
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
     return Response(result)

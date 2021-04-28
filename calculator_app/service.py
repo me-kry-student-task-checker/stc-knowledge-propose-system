@@ -66,5 +66,5 @@ def validate_input(data):
 
 
 def validate_bookuser_input(user_id):
-    if not isinstance(user_id, int) or user_id > len(list(ratings.user_id.unique())):
+    if not isinstance(user_id, int) or user_id > len(list(ratings.user_id.unique())) or user_id < 0:
         raise ValidationError
