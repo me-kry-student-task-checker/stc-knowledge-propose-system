@@ -30,7 +30,7 @@ def get_calculations(request):
 
 @api_view(["POST"])
 def calculate(request):
-    data = {"numberA": request.data.get("numberA"), "numberB": request.data.get("numberB"),
+    data = {"numbera": request.data.get("numberA"), "numberb": request.data.get("numberB"),
             "operation": request.data.get("operation"), "result": None}
 
     try:

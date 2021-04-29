@@ -15,5 +15,5 @@ class Calculations(models.Model):
     result = models.FloatField(blank=True, null=True)
 
     class Meta:
-        managed = False
+        # managed = False
         db_table = 'calculations'

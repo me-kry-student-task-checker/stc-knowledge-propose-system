@@ -31,8 +31,8 @@ def recommend_books(user_id):
 
 def calculate(data):
     result = None
-    numberA = data["numberA"]
-    numberB = data["numberB"]
+    numberA = data["numbera"]
+    numberB = data["numberb"]
     operation = data["operation"]
 
     if operation == "add":
@@ -45,8 +45,10 @@ def calculate(data):
         result = numberA / numberB
 
     data["result"] = result
+    print(data)
     serializer = CalculationSerializer(data=data)
     if serializer.is_valid():
+        print(serializer)
         serializer.save()
 
     return {"result": result}
@@ -55,13 +57,13 @@ def calculate(data):
 def validate_input(data):
     operation_list = ["add", "minus", "multiple", "divide"]
 
-    if not isinstance(data["numberA"], int) and not isinstance(data["numberA"], float):
+    if not isinstance(data["numbera"], int) and not isinstance(data["numbera"], float):
         raise ValidationError
-    elif not isinstance(data["numberB"], int) and not isinstance(data["numberB"], float):
+    elif not isinstance(data["numberb"], int) and not isinstance(data["numberb"], float):
         raise ValidationError
     elif data["operation"] not in operation_list:
         raise ValidationError
-    elif data["numberB"] == 0 and data["operation"] == "divide":
+    elif data["numberb"] == 0 and data["operation"] == "divide":
         raise ZeroDivisionError
 
 
