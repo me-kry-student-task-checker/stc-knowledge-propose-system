@@ -45,10 +45,8 @@ def calculate(data):
         result = numberA / numberB
 
     data["result"] = result
-    print(data)
     serializer = CalculationSerializer(data=data)
     if serializer.is_valid():
-        print(serializer)
         serializer.save()
 
     return {"result": result}
