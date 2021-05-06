@@ -21,6 +21,19 @@ def recommend_books(request):
     return Response(result)
 
 
+@api_view(["POST"])
+def recommend_sources(request):
+    user_id = request.data.get("userid")
+
+    try:
+        service.validate_sourceuser_input(user_id)
+        result = service.recommend_sources(user_id)
+    except ValidationError as e:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    return Response(result)
+
+
 @api_view(["GET"])
 def get_calculations(request):
     calculations = Calculations.objects.all()
