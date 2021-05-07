@@ -24,12 +24,7 @@ def create_app(test_config=None):
     except OSError:
         pass
 
-    # a simple page that says hello
-    @app.route("/hello")
-    def hello():
-        return "Hello, World!"
-
-    from . import calculate
-    app.register_blueprint(calculate.bp)
+    from flaskr.controller import calculate_controller
+    app.register_blueprint(calculate_controller.bp)
 
     return app
