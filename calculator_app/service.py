@@ -4,8 +4,9 @@ import tensorflow.keras as keras
 import numpy
 import pandas
 import os
-from calculator.settings import BASE_DIR
+from stc_sources.settings import BASE_DIR
 
+'''
 model_file_path = os.path.join(BASE_DIR, 'calculator_app/model')
 model = keras.models.load_model(model_file_path)
 
@@ -13,6 +14,7 @@ ratings_file_path = os.path.join(BASE_DIR, 'calculator_app/res/ratings.csv')
 books_file_path = os.path.join(BASE_DIR, 'calculator_app/res/books.csv')
 ratings = pandas.read_csv(ratings_file_path)
 books = pandas.read_csv(books_file_path)
+'''
 
 source_model_file_path = os.path.join(BASE_DIR, 'calculator_app/source_model')
 source_model = keras.models.load_model(source_model_file_path)
@@ -21,7 +23,7 @@ sources_file_path = os.path.join(BASE_DIR, 'calculator_app/res/sources.xlsx')
 sources = pandas.read_excel(sources_file_path, sheet_name="Sources")
 sources_ratings = pandas.read_excel(sources_file_path, sheet_name="Ratings")
 
-
+'''
 def recommend_books(user_id):
     b_id = list(ratings.book_id.unique())
     book_arr = numpy.array(b_id)
@@ -34,13 +36,14 @@ def recommend_books(user_id):
 
     recommended_books = recommended_books[["book_id", "title", "authors"]].to_json(orient="records")
     return recommended_books
+'''
 
 
 def recommend_sources(user_id):
     s_id = list(sources_ratings.source_id.unique())
     source_arr = numpy.array(s_id)
     user = numpy.array([user_id for i in range(len(s_id))])
-    pred = model.predict([source_arr, user])
+    pred = source_model.predict([source_arr, user])
 
     pred = pred.reshape(-1)
     pred_ids = (-pred).argsort()[0:5]
