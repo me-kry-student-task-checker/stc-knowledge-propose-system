@@ -47,6 +47,53 @@ def validate_userid_input(user_id):
         raise ValidationError
 
 
+def add_source(source):
+    serializer = SourceSerializer(data=source)
+    if serializer.is_valid():
+        serializer.save()
+
+
+def validate_source_input(source):
+    if not isinstance(source["title"], str) or not isinstance(source["topic"], str) or not isinstance(source["url"], str):
+        raise ValidationError
+    if not source["title"] or not source["topic"] or not source["url"]:
+        raise ValidationError
+
+
+def add_rating(rating):
+    serializer = RatingSerializer(data=rating)
+    if serializer.is_valid():
+        update_source_ratings(rating)
+        serializer.save()
+
+
+def update_source_ratings(rating):
+    source = models.Source.objects.get(source_id=rating["source"])
+    source.ratings_count = source.ratings_count + 1
+    if rating["rating"] == 1:
+        source.ratings_1 = source.ratings_1 + 1
+    elif rating["rating"] == 2:
+        source.ratings_2 = source.ratings_2 + 1
+    elif rating["rating"] == 3:
+        source.ratings_3 = source.ratings_3 + 1
+    elif rating["rating"] == 4:
+        source.ratings_4 = source.ratings_4 + 1
+    elif rating["rating"] == 5:
+        source.ratings_5 = source.ratings_5 + 1
+    source.average_rating = (1 * source.ratings_1 + 2 * source.ratings_2 + 3 * source.ratings_3 + 4 * source.ratings_4 +
+                             5 * source.ratings_5)/source.ratings_count
+    source.save()
+
+
+def validate_rating_input(rating):
+    print(rating)
+    if not isinstance(rating["source"], int) or not isinstance(rating["user"], int) \
+            or not isinstance(rating["rating"], int):
+        raise ValidationError
+    if rating["rating"] > 5 or rating["rating"] < 1:
+        raise ValidationError
+
+
 """
 source_model_file_path = os.path.join(BASE_DIR, 'calculator_app/source_model')
 source_model = keras.models.load_model(source_model_file_path)
