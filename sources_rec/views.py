@@ -24,7 +24,7 @@ def recommend_sources(request):
     try:
         service.validate_userid_input(user_id)
         result = service.recommend_sources(user_id)
-    except ValidationError as e:
+    except ValidationError:
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
     return Response(result)
@@ -47,10 +47,41 @@ def add_source(request):
     try:
         service.validate_source_input(source)
         service.add_source(source)
-    except ValidationError as e:
+    except ValidationError:
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
     return Response(status=status.HTTP_201_CREATED)
+
+
+@api_view(["DELETE"])
+def delete_source(request):
+    source = {
+        "id": request.data.get("id")
+    }
+    try:
+        service.validate_delete_source_input(source)
+        service.delete_source(source)
+    except (ValidationError, models.Source.DoesNotExist):
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    return Response(status=status.HTTP_200_OK)
+
+
+@api_view(["PUT"])
+def update_source(request):
+    source = {
+        "id": request.data.get("id"),
+        "title": request.data.get("title"),
+        "topic": request.data.get("topic"),
+        "url": request.data.get("url"),
+    }
+    try:
+        service.validate_source_input(source)
+        service.update_source(source)
+    except ValidationError:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    return Response(status=status.HTTP_200_OK)
 
 
 @api_view(["POST"])
@@ -63,7 +94,7 @@ def add_rating(request):
     try:
         service.validate_rating_input(rating)
         service.add_rating(rating)
-    except (ValidationError, models.Source.DoesNotExist) as e:
+    except (ValidationError, models.Source.DoesNotExist):
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
     return Response(status=status.HTTP_201_CREATED)
@@ -78,7 +109,7 @@ def delete_rating(request):
     try:
         service.validate_delete_rating_input(rating)
         service.delete_rating(rating)
-    except (ValidationError, models.Rating.DoesNotExist) as e:
+    except (ValidationError, models.Rating.DoesNotExist):
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
     return Response(status=status.HTTP_200_OK)
@@ -94,7 +125,7 @@ def update_rating(request):
     try:
         service.validate_rating_input(rating)
         service.update_rating(rating)
-    except (ValidationError, models.Rating.DoesNotExist) as e:
+    except (ValidationError, models.Rating.DoesNotExist):
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
     return Response(status=status.HTTP_201_CREATED)

@@ -53,6 +53,22 @@ def add_source(source):
         serializer.save()
 
 
+def delete_source(source):
+    deleted_source = models.Source.objects.get(source_id=source["id"])
+    deleted_source.delete()
+
+
+def update_source(source):
+    updated_source = models.Source.objects.filter(source_id=source["id"])
+    if not updated_source:
+        raise ValidationError
+    updated_source.update(
+        title=source["title"],
+        topic=source["topic"],
+        url=source["url"]
+    )
+
+
 def validate_source_input(source):
     if not isinstance(source["title"], str) or not isinstance(source["topic"], str) \
             or not isinstance(source["url"], str):
@@ -61,8 +77,13 @@ def validate_source_input(source):
         raise ValidationError
 
 
+def validate_delete_source_input(source):
+    if not isinstance(source["id"], int) or not source["id"]:
+        raise ValidationError
+
+
 def add_rating(rating):
-    if not models.Rating.objects.filter(source=rating["source"], user=rating["user"]):
+    if models.Rating.objects.filter(source=rating["source"], user=rating["user"]):
         raise ValidationError
     serializer = RatingSerializer(data=rating)
     if serializer.is_valid():
@@ -127,6 +148,8 @@ def validate_delete_rating_input(rating):
 
 def update_rating(rating):
     updated_rating = models.Rating.objects.filter(source=rating["source"], user=rating["user"])
+    if not updated_rating:
+        raise ValidationError
     delete_source_ratings(rating, updated_rating["rating"])
     update_source_ratings(rating)
     updated_rating.update(rating=rating["rating"])
