@@ -83,28 +83,6 @@ def update_source(source):
     )
 
 
-def validate_source_input(source):
-    if not isinstance(source["title"], str) or not isinstance(source["topic"], str) \
-            or not isinstance(source["url"], str):
-        raise ValidationError
-    if not source["title"] or not source["topic"] or not source["url"]:
-        raise ValidationError
-
-
-def validate_get_source_input(url):
-    if not isinstance(url, str):
-        raise ValidationError
-    if not url:
-        raise ValidationError
-
-
-def validate_delete_source_input(source):
-    if not isinstance(source["id"], int):
-        raise ValidationError
-    if not source["id"]:
-        raise ValidationError
-
-
 def add_rating(rating):
     if models.Rating.objects.filter(source=rating["source"], user=rating["user"]):
         raise ValidationError
@@ -132,14 +110,6 @@ def update_source_ratings(rating):
     source.save()
 
 
-def validate_rating_input(rating):
-    if not isinstance(rating["source"], int) or not isinstance(rating["user"], int) \
-            or not isinstance(rating["rating"], int):
-        raise ValidationError
-    if rating["rating"] > 5 or rating["rating"] < 1:
-        raise ValidationError
-
-
 def get_user_ratings(user):
     ratings = models.Rating.objects.filter(user=user)
     if not ratings:
@@ -164,13 +134,6 @@ def get_source_and_user_ratings(source, user):
     return serializer.data
 
 
-def validate_user_or_source_ratings_input(data):
-    if not isinstance(data, int):
-        raise ValidationError
-    if not data:
-        raise ValidationError
-
-
 def delete_rating(rating):
     deleted_rating = models.Rating.objects.get(source=rating["source"], user=rating["user"])
     delete_source_ratings(rating, deleted_rating["rating"])
@@ -193,13 +156,6 @@ def delete_source_ratings(rating, rating_value):
     source.average_rating = (1 * source.ratings_1 + 2 * source.ratings_2 + 3 * source.ratings_3 + 4 * source.ratings_4 +
                              5 * source.ratings_5) / source.ratings_count
     source.save()
-
-
-def validate_delete_rating_input(rating):
-    if not isinstance(rating["source"], int) or not isinstance(rating["user"], int):
-        raise ValidationError
-    if not rating["source"] or not rating["user"]:
-        raise ValidationError
 
 
 def update_rating(rating):
