@@ -48,9 +48,23 @@ def validate_userid_input(user_id):
 
 
 def add_source(source):
+    if models.Source.objects.filter(url=source["url"]):
+        raise ValidationError
     serializer = SourceSerializer(data=source)
     if serializer.is_valid():
         serializer.save()
+
+
+def get_sources():
+    sources = models.Source.objects.all()
+    serializer = SourceSerializer(sources, many=True)
+    return serializer.data
+
+
+def get_source(url):
+    source = models.Source.objects.get(url=url)
+    serializer = SourceSerializer(source)
+    return serializer.data
 
 
 def delete_source(source):
@@ -77,8 +91,17 @@ def validate_source_input(source):
         raise ValidationError
 
 
+def validate_get_source_input(url):
+    if not isinstance(url, str):
+        raise ValidationError
+    if not url:
+        raise ValidationError
+
+
 def validate_delete_source_input(source):
-    if not isinstance(source["id"], int) or not source["id"]:
+    if not isinstance(source["id"], int):
+        raise ValidationError
+    if not source["id"]:
         raise ValidationError
 
 
@@ -117,6 +140,37 @@ def validate_rating_input(rating):
         raise ValidationError
 
 
+def get_user_ratings(user):
+    ratings = models.Rating.objects.filter(user=user)
+    if not ratings:
+        raise ValidationError
+    serializer = RatingSerializer(ratings, many=True)
+    return serializer.data
+
+
+def get_source_ratings(source):
+    ratings = models.Rating.objects.filter(source=source)
+    if not ratings:
+        raise ValidationError
+    serializer = RatingSerializer(ratings, many=True)
+    return serializer.data
+
+
+def get_source_and_user_ratings(source, user):
+    ratings = models.Rating.objects.filter(source=source, user=user)
+    if not ratings:
+        raise ValidationError
+    serializer = RatingSerializer(ratings, many=True)
+    return serializer.data
+
+
+def validate_user_or_source_ratings_input(data):
+    if not isinstance(data, int):
+        raise ValidationError
+    if not data:
+        raise ValidationError
+
+
 def delete_rating(rating):
     deleted_rating = models.Rating.objects.get(source=rating["source"], user=rating["user"])
     delete_source_ratings(rating, deleted_rating["rating"])
@@ -143,6 +197,8 @@ def delete_source_ratings(rating, rating_value):
 
 def validate_delete_rating_input(rating):
     if not isinstance(rating["source"], int) or not isinstance(rating["user"], int):
+        raise ValidationError
+    if not rating["source"] or not rating["user"]:
         raise ValidationError
 
 

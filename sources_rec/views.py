@@ -53,6 +53,24 @@ def add_source(request):
     return Response(status=status.HTTP_201_CREATED)
 
 
+@api_view(["GET"])
+def get_sources(request):
+    sources = service.get_sources()
+    return Response(sources)
+
+
+@api_view(["GET"])
+def get_source(request):
+    url = request.data.get("url")
+    try:
+        service.validate_get_source_input(url)
+        source = service.get_source(url)
+    except (ValidationError, models.Source.DoesNotExist):
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    return Response(source)
+
+
 @api_view(["DELETE"])
 def delete_source(request):
     source = {
@@ -98,6 +116,44 @@ def add_rating(request):
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
     return Response(status=status.HTTP_201_CREATED)
+
+
+@api_view(["GET"])
+def get_user_ratings(request):
+    user = request.data.get("user")
+    try:
+        service.validate_user_or_source_ratings_input(user)
+        ratings = service.get_user_ratings(user)
+    except ValidationError:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    return Response(ratings)
+
+
+@api_view(["GET"])
+def get_source_ratings(request):
+    source = request.data.get("source")
+    try:
+        service.validate_user_or_source_ratings_input(source)
+        ratings = service.get_source_ratings(source)
+    except ValidationError:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    return Response(ratings)
+
+
+@api_view(["GET"])
+def get_source_and_user_ratings(request):
+    source = request.data.get("source")
+    user = request.data.get("user")
+    try:
+        service.validate_user_or_source_ratings_input(source)
+        service.validate_user_or_source_ratings_input(user)
+        ratings = service.get_source_and_user_ratings(source, user)
+    except ValidationError:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    return Response(ratings)
 
 
 @api_view(["DELETE"])
