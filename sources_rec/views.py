@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from sources_rec import service
 from sources_rec import models
 from sources_rec import validators
+from sources_rec import model_builder
 
 
 @api_view(["POST"])
@@ -29,6 +30,12 @@ def recommend_sources(request):
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
     return Response(result)
+
+
+@api_view(["PUT"])
+def build_recommender_model(request):
+    model_builder.build_recommender_model()
+    return Response(status=status.HTTP_200_OK)
 
 
 @api_view(["POST"])

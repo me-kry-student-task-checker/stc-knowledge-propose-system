@@ -22,7 +22,7 @@ def build_recommender_model():
     train_set, test_set = train_test_split(ratings_df, test_size=0.2, random_state=1)
 
     nsource_id = ratings_df.source_id.nunique()
-    nuser_id = ratings_df.user_id.nunique()
+    nuser_id = ratings_df.user.nunique()
 
     input_sources = keras.layers.Input(shape=[1])
     embed_sources = keras.layers.Embedding(nsource_id + 1, 15)(input_sources)
@@ -42,13 +42,15 @@ def build_recommender_model():
 
     model.summary()
 
-    hist = model.fit([train_set.source_id, train_set.user_id], train_set.rating,
+    hist = model.fit([train_set.source_id, train_set.user], train_set.rating,
                      batch_size=64,
                      epochs=5,
                      verbose=1,
-                     validation_data=([test_set.source_id, test_set.user_id], test_set.rating))
+                     validation_data=([test_set.source_id, test_set.user], test_set.rating))
 
     train_loss = hist.history["loss"]
     val_loss = hist.history["val_loss"]
+    print(train_loss)
+    print(val_loss)
 
     model.save(source_model_file_path)
