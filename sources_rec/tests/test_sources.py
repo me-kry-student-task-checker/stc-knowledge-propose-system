@@ -96,3 +96,63 @@ class AddSourceTest(TestCase):
         response = client.post(reverse("add_source"), data=self.valid_source, content_type="application/json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
+
+class DeleteSourceTest(TestCase):
+
+    def setUp(self):
+        self.source = Source.objects.create(title="Test", topic="topic", url="www.proba.hu", average_rating=0,
+                                         ratings_count=0,
+                                         ratings_1=0, ratings_2=0, ratings_3=0, ratings_4=0, ratings_5=0)
+        self.valid_url_query = {
+            "url": self.source.url
+        }
+        self.invalid_url_query = {
+            "url": "Test"
+        }
+
+    def test_delete_source(self):
+        response = client.delete(reverse("delete_source"), data=self.valid_url_query, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_delete_invalid_source(self):
+        response = client.delete(reverse("delete_source"), data=self.invalid_url_query, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+class UpdateSourceTest(TestCase):
+
+    def setUp(self):
+        self.source = Source.objects.create(title="Test", topic="topic", url="www.proba.hu", average_rating=0,
+                                            ratings_count=0,
+                                            ratings_1=0, ratings_2=0, ratings_3=0, ratings_4=0, ratings_5=0)
+        self.valid_source = {
+            "old_url": self.source.url,
+            "title": "New title",
+            "topic": "New topic",
+            "url": "www.new.hu",
+        }
+        self.invalid_type_source = {
+            "old_url": self.source.url,
+            "title": 2,
+            "topic": "New topic",
+            "url": "www.new.hu",
+        }
+        self.invalid_source = {
+            "old_url": "www.test.hu",
+            "title": "New title",
+            "topic": "New topic",
+            "url": "www.new.hu",
+        }
+
+    def test_update_source(self):
+        response = client.put(reverse("update_source"), data=self.valid_source, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_update_source_invalid_input(self):
+        response = client.put(reverse("update_source"), data=self.invalid_type_source, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_update_invalid_source(self):
+        response = client.put(reverse("update_source"), data=self.invalid_source, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+

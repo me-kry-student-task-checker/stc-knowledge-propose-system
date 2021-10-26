@@ -16,10 +16,10 @@ def validate_get_source_input(url):
         raise ValidationError
 
 
-def validate_delete_source_input(source):
-    if not isinstance(source["id"], int):
+def validate_delete_source_input(url):
+    if not isinstance(url, str):
         raise ValidationError
-    if not source["id"]:
+    if not url:
         raise ValidationError
 
 

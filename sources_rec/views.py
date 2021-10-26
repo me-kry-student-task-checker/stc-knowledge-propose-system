@@ -81,12 +81,10 @@ def get_source(request):
 
 @api_view(["DELETE"])
 def delete_source(request):
-    source = {
-        "id": request.data.get("id")
-    }
+    url = request.data.get("url")
     try:
-        validators.validate_delete_source_input(source)
-        service.delete_source(source)
+        validators.validate_delete_source_input(url)
+        service.delete_source(url)
     except (ValidationError, models.Source.DoesNotExist):
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
@@ -96,12 +94,13 @@ def delete_source(request):
 @api_view(["PUT"])
 def update_source(request):
     source = {
-        "id": request.data.get("id"),
+        "old_url": request.data.get("old_url"),
         "title": request.data.get("title"),
         "topic": request.data.get("topic"),
         "url": request.data.get("url"),
     }
     try:
+        validators.validate_delete_source_input(source["old_url"])
         validators.validate_source_input(source)
         service.update_source(source)
     except ValidationError:
