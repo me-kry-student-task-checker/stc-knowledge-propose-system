@@ -69,10 +69,10 @@ def get_sources(request):
 
 @api_view(["POST"])
 def get_source(request):
-    url = request.data.get("url")
+    source_id = request.data.get("source")
     try:
-        validators.validate_get_source_input(url)
-        source = service.get_source(url)
+        validators.validate_get_source_input(source_id)
+        source = service.get_source(source_id)
     except (ValidationError, models.Source.DoesNotExist):
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
@@ -81,10 +81,10 @@ def get_source(request):
 
 @api_view(["DELETE"])
 def delete_source(request):
-    url = request.data.get("url")
+    source_id = request.data.get("source")
     try:
-        validators.validate_delete_source_input(url)
-        service.delete_source(url)
+        validators.validate_delete_source_input(source_id)
+        service.delete_source(source_id)
     except (ValidationError, models.Source.DoesNotExist):
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
@@ -94,13 +94,13 @@ def delete_source(request):
 @api_view(["PUT"])
 def update_source(request):
     source = {
-        "old_url": request.data.get("old_url"),
+        "source_id": request.data.get("source_id"),
         "title": request.data.get("title"),
         "topic": request.data.get("topic"),
         "url": request.data.get("url"),
     }
     try:
-        validators.validate_delete_source_input(source["old_url"])
+        validators.validate_delete_source_input(source["source_id"])
         validators.validate_source_input(source)
         service.update_source(source)
     except ValidationError:
@@ -129,7 +129,7 @@ def add_rating(request):
 def get_user_ratings(request):
     user = request.data.get("user")
     try:
-        validators.validate_user_or_source_ratings_input(user)
+        validators.validate_user_ratings_input(user)
         ratings = service.get_user_ratings(user)
     except ValidationError:
         return Response(status=status.HTTP_400_BAD_REQUEST)
@@ -141,7 +141,7 @@ def get_user_ratings(request):
 def get_source_ratings(request):
     source = request.data.get("source")
     try:
-        validators.validate_user_or_source_ratings_input(source)
+        validators.validate_user_ratings_input(source)
         ratings = service.get_source_ratings(source)
     except ValidationError:
         return Response(status=status.HTTP_400_BAD_REQUEST)
@@ -154,8 +154,8 @@ def get_source_and_user_ratings(request):
     source = request.data.get("source")
     user = request.data.get("user")
     try:
-        validators.validate_user_or_source_ratings_input(source)
-        validators.validate_user_or_source_ratings_input(user)
+        validators.validate_user_ratings_input(source)
+        validators.validate_user_ratings_input(user)
         ratings = service.get_source_and_user_ratings(source, user)
     except ValidationError:
         return Response(status=status.HTTP_400_BAD_REQUEST)

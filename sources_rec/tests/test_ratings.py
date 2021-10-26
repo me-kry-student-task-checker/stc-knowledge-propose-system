@@ -1,5 +1,9 @@
 from django.test import Client, TestCase
+from django.urls import reverse
+from rest_framework import status
+
 from sources_rec.models import Source, Rating
+from sources_rec.serializers import RatingSerializer, SourceSerializer
 
 client = Client()
 
@@ -16,4 +20,50 @@ class GetRatingsTest(TestCase):
         self.rating1 = Rating.objects.create(source=self.source1, user=1, rating=1)
         self.rating2 = Rating.objects.create(source=self.source1, user=2, rating=5)
         self.rating3 = Rating.objects.create(source=self.source2, user=1, rating=3)
+
+    def test_get_user_ratings(self):
+        user = {
+            "user": 1
+        }
+        response = client.post(reverse("get_user_ratings"), data=user, content_type="application/json")
+        ratings = Rating.objects.filter(user=user["user"])
+        serializer = RatingSerializer(ratings, many=True)
+        self.assertEqual(response.data, serializer.data)
+
+    def test_get_user_ratings_invalid_input(self):
+        user = {
+            "user": "1"
+        }
+        response = client.post(reverse("get_user_ratings"), data=user, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_get_invalid_user_ratings(self):
+        user = {
+            "user": 3
+        }
+        response = client.post(reverse("get_user_ratings"), data=user, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_get_source_ratings(self):
+        source = {
+            "source": self.source1.pk
+        }
+        response = client.post(reverse("get_source_ratings"), data=source, content_type="application/json")
+        ratings = Rating.objects.filter(source=source["source"])
+        serializer = RatingSerializer(ratings, many=True)
+        self.assertEqual(response.data, serializer.data)
+
+    def test_get_source_ratings_invalid_input(self):
+        source = {
+            "source": "4"
+        }
+        response = client.post(reverse("get_source_ratings"), data=source, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_get_invalid_source_ratings(self):
+        source = {
+            "source": -1
+        }
+        response = client.post(reverse("get_source_ratings"), data=source, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 

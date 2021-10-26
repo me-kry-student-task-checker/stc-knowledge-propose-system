@@ -9,17 +9,17 @@ def validate_source_input(source):
         raise ValidationError
 
 
-def validate_get_source_input(url):
-    if not isinstance(url, str):
+def validate_get_source_input(source_id):
+    if not isinstance(source_id, int):
         raise ValidationError
-    if not url:
+    if not source_id:
         raise ValidationError
 
 
-def validate_delete_source_input(url):
-    if not isinstance(url, str):
+def validate_delete_source_input(source_id):
+    if not isinstance(source_id, int):
         raise ValidationError
-    if not url:
+    if not source_id:
         raise ValidationError
 
 
@@ -31,7 +31,7 @@ def validate_rating_input(rating):
         raise ValidationError
 
 
-def validate_user_or_source_ratings_input(data):
+def validate_user_ratings_input(data):
     if not isinstance(data, int):
         raise ValidationError
     if not data:

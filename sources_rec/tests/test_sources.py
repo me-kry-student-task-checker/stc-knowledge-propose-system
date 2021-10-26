@@ -25,31 +25,26 @@ class GetSourcesTest(TestCase):
         self.assertEqual(response.data, serializer.data)
 
     def test_get_one_valid_source(self):
-        url_query = {
-            "url": self.source1.url
+        source = {
+            "source": self.source1.pk
         }
-        response = client.post(reverse("get_source"), data=url_query, content_type="application/json")
+        response = client.post(reverse("get_source"), data=source, content_type="application/json")
         source = Source.objects.get(url=self.source1.url)
         serializer = SourceSerializer(source)
         self.assertEqual(response.data, serializer.data)
 
     def test_get_one_invalid_source(self):
-        url_query = {
-            "url": "test"
+        source = {
+            "source": -1
         }
-        response = client.post(reverse("get_source"), data=url_query, content_type="application/json")
+        response = client.post(reverse("get_source"), data=source, content_type="application/json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_get_one_source_invalid_input(self):
-        url_query1 = {
-            "url": 2
+        source = {
+            "source": ""
         }
-        url_query2 = {
-            "url": ""
-        }
-        response = client.post(reverse("get_source"), data=url_query1, content_type="application/json")
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        response = client.post(reverse("get_source"), data=url_query2, content_type="application/json")
+        response = client.post(reverse("get_source"), data=source, content_type="application/json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
@@ -103,19 +98,19 @@ class DeleteSourceTest(TestCase):
         self.source = Source.objects.create(title="Test", topic="topic", url="www.proba.hu", average_rating=0,
                                          ratings_count=0,
                                          ratings_1=0, ratings_2=0, ratings_3=0, ratings_4=0, ratings_5=0)
-        self.valid_url_query = {
-            "url": self.source.url
+        self.valid_source = {
+            "source": self.source.pk
         }
-        self.invalid_url_query = {
-            "url": "Test"
+        self.invalid_source = {
+            "source": -1
         }
 
     def test_delete_source(self):
-        response = client.delete(reverse("delete_source"), data=self.valid_url_query, content_type="application/json")
+        response = client.delete(reverse("delete_source"), data=self.valid_source, content_type="application/json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_delete_invalid_source(self):
-        response = client.delete(reverse("delete_source"), data=self.invalid_url_query, content_type="application/json")
+        response = client.delete(reverse("delete_source"), data=self.invalid_source, content_type="application/json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
@@ -126,19 +121,19 @@ class UpdateSourceTest(TestCase):
                                             ratings_count=0,
                                             ratings_1=0, ratings_2=0, ratings_3=0, ratings_4=0, ratings_5=0)
         self.valid_source = {
-            "old_url": self.source.url,
+            "source_id": self.source.pk,
             "title": "New title",
             "topic": "New topic",
             "url": "www.new.hu",
         }
         self.invalid_type_source = {
-            "old_url": self.source.url,
+            "source_id": self.source.pk,
             "title": 2,
             "topic": "New topic",
             "url": "www.new.hu",
         }
         self.invalid_source = {
-            "old_url": "www.test.hu",
+            "source_id": -1,
             "title": "New title",
             "topic": "New topic",
             "url": "www.new.hu",

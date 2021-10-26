@@ -61,19 +61,19 @@ def get_sources():
     return serializer.data
 
 
-def get_source(url):
-    source = models.Source.objects.get(url=url)
+def get_source(source_id):
+    source = models.Source.objects.get(source_id=source_id)
     serializer = SourceSerializer(source)
     return serializer.data
 
 
-def delete_source(url):
-    deleted_source = models.Source.objects.get(url=url)
+def delete_source(source_id):
+    deleted_source = models.Source.objects.get(source_id=source_id)
     deleted_source.delete()
 
 
 def update_source(source):
-    updated_source = models.Source.objects.filter(url=source["old_url"])
+    updated_source = models.Source.objects.filter(source_id=source["source_id"])
     if not updated_source:
         raise ValidationError
     updated_source.update(
