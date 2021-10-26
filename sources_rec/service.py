@@ -84,6 +84,8 @@ def update_source(source):
 
 
 def add_rating(rating):
+    if not models.Rating.objects.filter(source=rating["source"]):
+        raise ValidationError
     if models.Rating.objects.filter(source=rating["source"], user=rating["user"]):
         raise ValidationError
     serializer = RatingSerializer(data=rating)
@@ -136,7 +138,8 @@ def get_source_and_user_ratings(source, user):
 
 def delete_rating(rating):
     deleted_rating = models.Rating.objects.get(source=rating["source"], user=rating["user"])
-    delete_source_ratings(rating, deleted_rating["rating"])
+    serializer = RatingSerializer(deleted_rating)
+    delete_source_ratings(rating, serializer.data["rating"])
     deleted_rating.delete()
 
 
@@ -162,7 +165,8 @@ def update_rating(rating):
     updated_rating = models.Rating.objects.filter(source=rating["source"], user=rating["user"])
     if not updated_rating:
         raise ValidationError
-    delete_source_ratings(rating, updated_rating["rating"])
+    serializer = RatingSerializer(updated_rating.first())
+    delete_source_ratings(rating, serializer.data["rating"])
     update_source_ratings(rating)
     updated_rating.update(rating=rating["rating"])
 
