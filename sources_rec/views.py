@@ -20,7 +20,7 @@ def add_ratings(request):
     return Response()
 
 
-@api_view(["GET"])
+@api_view(["POST"])
 def recommend_sources(request):
     user_id = request.data.get("userid")
     try:
@@ -67,7 +67,7 @@ def get_sources(request):
     return Response(sources)
 
 
-@api_view(["GET"])
+@api_view(["POST"])
 def get_source(request):
     url = request.data.get("url")
     try:
@@ -126,7 +126,7 @@ def add_rating(request):
     return Response(status=status.HTTP_201_CREATED)
 
 
-@api_view(["GET"])
+@api_view(["POST"])
 def get_user_ratings(request):
     user = request.data.get("user")
     try:
@@ -138,7 +138,7 @@ def get_user_ratings(request):
     return Response(ratings)
 
 
-@api_view(["GET"])
+@api_view(["POST"])
 def get_source_ratings(request):
     source = request.data.get("source")
     try:
@@ -150,7 +150,7 @@ def get_source_ratings(request):
     return Response(ratings)
 
 
-@api_view(["GET"])
+@api_view(["POST"])
 def get_source_and_user_ratings(request):
     source = request.data.get("source")
     user = request.data.get("user")
