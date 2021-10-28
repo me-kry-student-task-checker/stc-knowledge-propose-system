@@ -34,7 +34,7 @@ def recommend_sources(request):
 
 @api_view(["PUT"])
 def build_recommender_model(request):
-    model_builder.build_recommender_model()
+    model_builder.build_recommender_model2()
     return Response(status=status.HTTP_200_OK)
 
 
