@@ -66,8 +66,8 @@ class UserModel(tf.keras.Model):
 
         self.user_embedding = keras.Sequential([
             tf.keras.layers.IntegerLookup(
-                vocabulary=self.nuser_id, mask_token=None),
-            tf.keras.layers.Embedding(len(self.nuser_id) + 1, 15),
+                vocabulary=ratings_df["user"].unique(), mask_token=None),
+            tf.keras.layers.Embedding(self.nuser_id + 1, 15),
         ])
 
         max_tokens = 10_000
@@ -96,8 +96,8 @@ class SourceModel(tf.keras.Model):
 
         self.source_embedding = keras.Sequential([
             tf.keras.layers.IntegerLookup(
-                vocabulary=self.nsource_id, mask_token=None),
-            tf.keras.layers.Embedding(len(self.nuser_id) + 1, 15),
+                vocabulary=ratings_df["source_id"].unique(), mask_token=None),
+            tf.keras.layers.Embedding(self.nsource_id + 1, 15),
         ])
 
     def call(self, ratings):
@@ -105,9 +105,11 @@ class SourceModel(tf.keras.Model):
 
 
 class SourceRecommenderModel(tfrs.models.Model):
+    dataset = tf.data.Dataset.from_tensor_slices(dict(ratings_df))
 
     def __init__(self):
-        super().__init_()
+        super(SourceRecommenderModel, self).__init__()
+        # super.__init__(super)
         self.query_model = keras.Sequential([
             UserModel(),
             tf.keras.layers.Dense(32)
@@ -118,7 +120,7 @@ class SourceRecommenderModel(tfrs.models.Model):
         ])
         self.task = tfrs.tasks.Retrieval(
             metrics=tfrs.metrics.FactorizedTopK(
-                candidates=ratings_df["source_id"].batch(128).map(self.candidate_model),
+                candidates=self.dataset.batch(128).map(self.candidate_model),
             ),
         )
 
@@ -133,14 +135,42 @@ class SourceRecommenderModel(tfrs.models.Model):
 
 
 def build_recommender_model2():
+    # Data process to include topic tags in the ratings Dataframe
+    topic_column = list()
+    for index, row in ratings_df.iterrows():
+        source_row = sources_df.loc[sources_df["source_id"] == row["source_id"]]
+        topic_column.append(source_row["topic"])
+
+    ratings_df["source_topic"] = topic_column
+
+    cached_train, cached_test = train_test_split(ratings_df, test_size=0.2, random_state=1)
+    print(cached_train)
+    # cached_train = tf.convert_to_tensor(cached_train, dtype=tf.int32)
+
     tf.random.set_seed(42)
-    shuffled = ratings_df.shuffle(100_000, seed=42, reshuffle_each_iteration=False)
+    #shuffled = ratings_df.shuffle(100_000, seed=42, reshuffle_each_iteration=False)
+    shuffled = ratings_df.sample(frac=1)
 
     train = shuffled.take(80_000)
     test = shuffled.skip(80_000).take(20_000)
 
     cached_train = train.shuffle(100_000).batch(2048)
     cached_test = test.batch(4096).cache()
+
+    model = SourceRecommenderModel()
+    model.compile(optimizer=tf.keras.optimizers.Adagrad(0.1))
+
+    model.fit(cached_train, epochs=3)
+
+    train_accuracy = model.evaluate(
+        cached_train, return_dict=True)["factorized_top_k/top_100_categorical_accuracy"]
+    test_accuracy = model.evaluate(
+        cached_test, return_dict=True)["factorized_top_k/top_100_categorical_accuracy"]
+
+    print(f"Top-100 accuracy (train): {train_accuracy:.2f}.")
+    print(f"Top-100 accuracy (test): {test_accuracy:.2f}.")
+
+    model.save(source_model_file_path)
 
     """""
     ratings_train_set, ratings_test_set = train_test_split(ratings_df, test_size=0.2, random_state=1)
