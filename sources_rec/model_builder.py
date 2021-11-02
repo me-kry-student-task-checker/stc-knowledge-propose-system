@@ -3,13 +3,13 @@ import tensorflow as tf
 import tensorflow_recommenders as tfrs
 from keras.layers import TextVectorization
 import pandas
-import numpy
 import os
 from tensorflow import optimizers
 from sklearn.model_selection import train_test_split
 from django.db import connection
 from sources_rec import models
 from stc_sources.settings import BASE_DIR
+
 
 source_model_file_path = os.path.join(BASE_DIR, "sources_rec/source_model2")
 
@@ -18,6 +18,43 @@ ratings_df = pandas.read_sql_query(query, connection)
 
 query = str(models.Source.objects.all().query)
 sources_df = pandas.read_sql_query(query, connection)
+
+# Data process to include topic tags in the ratings Dataframe
+topic_column = list()
+for index, row in ratings_df.iterrows():
+    source_row = sources_df.loc[sources_df["source_id"] == row["source_id"]]
+    topic_column.append(source_row["topic"].iloc[0])
+
+ratings_df["source_topic"] = topic_column
+
+ratings_ds = (
+    tf.data.Dataset.from_tensor_slices(
+        (
+            tf.cast(ratings_df["source_id"].values, tf.int32),
+            tf.cast(ratings_df["user"].values, tf.int32),
+            tf.cast(ratings_df["rating"].values, tf.int32),
+            tf.cast(ratings_df["source_topic"].values, tf.string)
+        )
+    )
+)
+
+sources_ds = (
+    tf.data.Dataset.from_tensor_slices(
+        (
+            tf.cast(sources_df["source_id"].values, tf.int32),
+            tf.cast(sources_df["title"].values, tf.string),
+            tf.cast(sources_df["topic"].values, tf.string),
+            tf.cast(sources_df["url"].values, tf.string),
+            tf.cast(sources_df["average_rating"].values, tf.float32),
+            tf.cast(sources_df["ratings_count"].values, tf.int32),
+            tf.cast(sources_df["ratings_1"].values, tf.int32),
+            tf.cast(sources_df["ratings_2"].values, tf.int32),
+            tf.cast(sources_df["ratings_3"].values, tf.int32),
+            tf.cast(sources_df["ratings_4"].values, tf.int32),
+            tf.cast(sources_df["ratings_5"].values, tf.int32)
+        )
+    )
+)
 
 
 def build_recommender_model():
@@ -105,7 +142,7 @@ class SourceModel(tf.keras.Model):
 
 
 class SourceRecommenderModel(tfrs.models.Model):
-    dataset = tf.data.Dataset.from_tensor_slices(dict(ratings_df))
+    ##dataset = tf.data.Dataset.from_tensor_slices(dict(ratings_df))
 
     def __init__(self):
         super(SourceRecommenderModel, self).__init__()
@@ -120,7 +157,7 @@ class SourceRecommenderModel(tfrs.models.Model):
         ])
         self.task = tfrs.tasks.Retrieval(
             metrics=tfrs.metrics.FactorizedTopK(
-                candidates=self.dataset.batch(128).map(self.candidate_model),
+                candidates=ratings_ds.batch(128).map(self.candidate_model),
             ),
         )
 
@@ -135,14 +172,6 @@ class SourceRecommenderModel(tfrs.models.Model):
 
 
 def build_recommender_model2():
-    # Data process to include topic tags in the ratings Dataframe
-    topic_column = list()
-    for index, row in ratings_df.iterrows():
-        source_row = sources_df.loc[sources_df["source_id"] == row["source_id"]]
-        topic_column.append(source_row["topic"])
-
-    ratings_df["source_topic"] = topic_column
-
     cached_train, cached_test = train_test_split(ratings_df, test_size=0.2, random_state=1)
     print(cached_train)
     # cached_train = tf.convert_to_tensor(cached_train, dtype=tf.int32)
