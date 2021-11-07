@@ -7,19 +7,22 @@ from django.db import connection
 from stc_sources.settings import BASE_DIR
 from sources_rec.serializers import SourceSerializer, RatingSerializer
 from sources_rec import models
+from sources_rec import validators
 
 
 source_model_file_path = os.path.join(BASE_DIR, "sources_rec/source_model")
 source_model = keras.models.load_model(source_model_file_path)
 
-query = str(models.Rating.objects.all().query)
-ratings_df = pandas.read_sql_query(query, connection)
-
-query = str(models.Source.objects.all().query)
-sources_df = pandas.read_sql_query(query, connection)
-
 
 def recommend_sources(user_id):
+    query = str(models.Rating.objects.all().query)
+    ratings_df = pandas.read_sql_query(query, connection)
+
+    query = str(models.Source.objects.all().query)
+    sources_df = pandas.read_sql_query(query, connection)
+
+    validators.validate_userid_input(user_id, ratings_df)
+
     s_id = list(ratings_df.source_id.unique())
     source_arr = numpy.array(s_id)
     user = numpy.array([user_id for i in range(len(s_id))])
@@ -40,11 +43,6 @@ def recommend_sources(user_id):
         returned_sources.append(source)
 
     return {"sources": returned_sources}
-
-
-def validate_userid_input(user_id):
-    if not isinstance(user_id, int) or user_id > len(list(ratings_df.user.unique())) or user_id < 0:
-        raise ValidationError
 
 
 def add_source(source):
@@ -129,10 +127,10 @@ def get_source_ratings(source):
 
 
 def get_source_and_user_ratings(source, user):
-    ratings = models.Rating.objects.filter(source=source, user=user)
+    ratings = models.Rating.objects.get(source=source, user=user)
     if not ratings:
         raise ValidationError
-    serializer = RatingSerializer(ratings, many=True)
+    serializer = RatingSerializer(ratings)
     return serializer.data
 
 

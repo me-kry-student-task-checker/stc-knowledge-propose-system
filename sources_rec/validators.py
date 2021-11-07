@@ -1,6 +1,11 @@
 from rest_framework.exceptions import ValidationError
 
 
+def validate_userid_input(user_id, ratings_df):
+    if not isinstance(user_id, int) or user_id > len(list(ratings_df.user.unique())) or user_id < 0:
+        raise ValidationError
+
+
 def validate_source_input(source):
     if not isinstance(source["title"], str) or not isinstance(source["topic"], str) \
             or not isinstance(source["url"], str):

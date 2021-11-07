@@ -11,15 +11,14 @@ from sources_rec import models
 from stc_sources.settings import BASE_DIR
 
 
-source_model_file_path = os.path.join(BASE_DIR, "sources_rec/source_model2")
+source_model_file_path = os.path.join(BASE_DIR, "sources_rec/source_model")
 
-query = str(models.Rating.objects.all().query)
-ratings_df = pandas.read_sql_query(query, connection)
+ratings_query = str(models.Rating.objects.all().query)
+ratings_df = pandas.read_sql_query(ratings_query, connection)
 
-query = str(models.Source.objects.all().query)
-sources_df = pandas.read_sql_query(query, connection)
+sources_query = str(models.Source.objects.all().query)
+sources_df = pandas.read_sql_query(sources_query, connection)
 
-# Data process to include topic tags in the ratings Dataframe
 topic_column = list()
 for index, row in ratings_df.iterrows():
     source_row = sources_df.loc[sources_df["source_id"] == row["source_id"]]
@@ -57,7 +56,23 @@ sources_ds = (
 )
 
 
+def prepare_fresh_data():
+    global ratings_df
+    global sources_df
+    ratings_df = pandas.read_sql_query(ratings_query, connection)
+    sources_df = pandas.read_sql_query(sources_query, connection)
+
+    topic_column = list()
+    for index, row in ratings_df.iterrows():
+        source_row = sources_df.loc[sources_df["source_id"] == row["source_id"]]
+        topic_column.append(source_row["topic"].iloc[0])
+
+    ratings_df["source_topic"] = topic_column
+    print(ratings_df)
+
+
 def build_recommender_model():
+    prepare_fresh_data()
     train_set, test_set = train_test_split(ratings_df, test_size=0.2, random_state=1)
 
     nsource_id = ratings_df.source_id.nunique()
@@ -73,7 +88,7 @@ def build_recommender_model():
 
     conc_layer = keras.layers.Concatenate()([sources_out, users_out])
     x = keras.layers.Dense(128, activation="relu")(conc_layer)
-    x_out = x = keras.layers.Dense(1, activation="relu")(x)
+    x_out = keras.layers.Dense(1, activation="relu")(x)
     model = keras.Model([input_sources, input_users], x_out)
 
     opt = optimizers.Adam(learning_rate=0.001)
@@ -82,7 +97,7 @@ def build_recommender_model():
     model.summary()
 
     hist = model.fit([train_set.source_id, train_set.user], train_set.rating,
-                     batch_size=64,
+                     batch_size=32,
                      epochs=5,
                      verbose=1,
                      validation_data=([test_set.source_id, test_set.user], test_set.rating))
@@ -118,10 +133,10 @@ class UserModel(tf.keras.Model):
             tf.keras.layers.GlobalAveragePooling1D(),
         ])
 
-    def call(self, ratings, sources):
+    def call(self, inputs):
         return tf.concat([
-            self.user_embedding(ratings["user"]),
-            self.source_topic_embedding(sources["topic"])
+            self.user_embedding(inputs["user"]),
+            self.source_topic_embedding(inputs["source_topic"])
         ], axis=1)
 
 
@@ -142,11 +157,9 @@ class SourceModel(tf.keras.Model):
 
 
 class SourceRecommenderModel(tfrs.models.Model):
-    ##dataset = tf.data.Dataset.from_tensor_slices(dict(ratings_df))
 
     def __init__(self):
         super(SourceRecommenderModel, self).__init__()
-        # super.__init__(super)
         self.query_model = keras.Sequential([
             UserModel(),
             tf.keras.layers.Dense(32)
@@ -157,7 +170,8 @@ class SourceRecommenderModel(tfrs.models.Model):
         ])
         self.task = tfrs.tasks.Retrieval(
             metrics=tfrs.metrics.FactorizedTopK(
-                candidates=ratings_ds.batch(128).map(self.candidate_model),
+                # nem jó
+                candidates=sources_ds.batch(128).map(self.candidate_model),
             ),
         )
 
@@ -172,13 +186,8 @@ class SourceRecommenderModel(tfrs.models.Model):
 
 
 def build_recommender_model2():
-    cached_train, cached_test = train_test_split(ratings_df, test_size=0.2, random_state=1)
-    print(cached_train)
-    # cached_train = tf.convert_to_tensor(cached_train, dtype=tf.int32)
-
     tf.random.set_seed(42)
-    #shuffled = ratings_df.shuffle(100_000, seed=42, reshuffle_each_iteration=False)
-    shuffled = ratings_df.sample(frac=1)
+    shuffled = ratings_ds.shuffle(100_000, seed=42, reshuffle_each_iteration=False)
 
     train = shuffled.take(80_000)
     test = shuffled.skip(80_000).take(20_000)

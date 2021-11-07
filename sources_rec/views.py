@@ -24,7 +24,6 @@ def add_ratings(request):
 def recommend_sources(request):
     user_id = request.data.get("userid")
     try:
-        service.validate_userid_input(user_id)
         result = service.recommend_sources(user_id)
     except ValidationError:
         return Response(status=status.HTTP_400_BAD_REQUEST)
@@ -34,7 +33,7 @@ def recommend_sources(request):
 
 @api_view(["PUT"])
 def build_recommender_model(request):
-    model_builder.build_recommender_model2()
+    model_builder.build_recommender_model()
     return Response(status=status.HTTP_200_OK)
 
 
