@@ -73,8 +73,8 @@ class GetRatingsTest(TestCase):
             "user": 1
         }
         response = client.post(reverse("get_source_and_user_ratings"), data=data, content_type="application/json")
-        ratings = Rating.objects.filter(source=data["source"], user=data["user"])
-        serializer = RatingSerializer(ratings, many=True)
+        ratings = Rating.objects.get(source=data["source"], user=data["user"])
+        serializer = RatingSerializer(ratings)
         self.assertEqual(response.data, serializer.data)
 
     def test_get_source_and_user_ratings_invalid_input(self):

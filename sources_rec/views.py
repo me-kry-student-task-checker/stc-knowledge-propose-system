@@ -156,7 +156,7 @@ def get_source_and_user_ratings(request):
         validators.validate_user_ratings_input(source)
         validators.validate_user_ratings_input(user)
         ratings = service.get_source_and_user_ratings(source, user)
-    except ValidationError:
+    except (ValidationError, models.Rating.DoesNotExist):
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
     return Response(ratings)
