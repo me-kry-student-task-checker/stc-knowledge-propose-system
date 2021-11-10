@@ -19,12 +19,13 @@ ratings_df = pandas.read_sql_query(ratings_query, connection)
 sources_query = str(models.Source.objects.all().query)
 sources_df = pandas.read_sql_query(sources_query, connection)
 
-topic_column = list()
-for index, row in ratings_df.iterrows():
-    source_row = sources_df.loc[sources_df["source_id"] == row["source_id"]]
-    topic_column.append(source_row["topic"].iloc[0])
+if len(ratings_df) != 0 and len(sources_df) != 0:
+    topic_column = list()
+    for index, row in ratings_df.iterrows():
+        source_row = sources_df.loc[sources_df["source_id"] == row["source_id"]]
+        topic_column.append(source_row["topic"].iloc[0])
 
-ratings_df["source_topic"] = topic_column
+    ratings_df["source_topic"] = topic_column
 
 """""
 ratings_ds = (
