@@ -79,8 +79,10 @@ DATABASES = {
     'default': {
         'ENGINE': 'mysql.connector.django',
         'NAME': "stc_sources",
-        'USER': "stcuser",
-        'PASSWORD': 'stcpw',
+        'USER': "sourceservice",
+        'PASSWORD': 'source',
+        "HOST": "mysql-database",
+        "PORT": 3306,
         'OPTIONS': {
             'autocommit': True,
         },
