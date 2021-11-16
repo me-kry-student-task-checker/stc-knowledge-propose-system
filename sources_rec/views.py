@@ -9,18 +9,6 @@ from sources_rec import model_builder
 
 
 @api_view(["POST"])
-def add_sources(request):
-    service.sources_to_db()
-    return Response()
-
-
-@api_view(["POST"])
-def add_ratings(request):
-    service.ratings_to_db()
-    return Response()
-
-
-@api_view(["POST"])
 def recommend_sources(request):
     user_id = request.data.get("userid")
     try:
