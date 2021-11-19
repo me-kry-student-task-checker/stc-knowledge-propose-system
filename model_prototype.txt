@@ -1,0 +1,145 @@
+Recommender model prototype with topic feature:
+
+ratings_ds = (
+    tf.data.Dataset.from_tensor_slices(
+        (
+            tf.cast(ratings_df["source_id"].values, tf.int32),
+            tf.cast(ratings_df["user"].values, tf.int32),
+            tf.cast(ratings_df["rating"].values, tf.int32),
+            tf.cast(ratings_df["source_topic"].values, tf.string)
+        )
+    )
+)
+
+sources_ds = (
+    tf.data.Dataset.from_tensor_slices(
+        (
+            tf.cast(sources_df["source_id"].values, tf.int32),
+            tf.cast(sources_df["title"].values, tf.string),
+            tf.cast(sources_df["topic"].values, tf.string),
+            tf.cast(sources_df["url"].values, tf.string),
+            tf.cast(sources_df["average_rating"].values, tf.float32),
+            tf.cast(sources_df["ratings_count"].values, tf.int32),
+            tf.cast(sources_df["ratings_1"].values, tf.int32),
+            tf.cast(sources_df["ratings_2"].values, tf.int32),
+            tf.cast(sources_df["ratings_3"].values, tf.int32),
+            tf.cast(sources_df["ratings_4"].values, tf.int32),
+            tf.cast(sources_df["ratings_5"].values, tf.int32)
+        )
+    )
+)
+
+class UserModel(tf.keras.Model):
+    nuser_id = ratings_df.user.nunique()
+
+    def __init__(self):
+        super().__init__()
+
+        self.user_embedding = keras.Sequential([
+            tf.keras.layers.IntegerLookup(
+                vocabulary=ratings_df["user"].unique(), mask_token=None),
+            tf.keras.layers.Embedding(self.nuser_id + 1, 15),
+        ])
+
+        max_tokens = 10_000
+
+        self.source_topic_vectorizer = TextVectorization(max_tokens=max_tokens)
+        self.source_topic_vectorizer.adapt(sources_df["topic"].map(lambda x: x))
+
+        self.source_topic_embedding = keras.Sequential([
+            self.source_topic_vectorizer,
+            tf.keras.layers.Embedding(max_tokens, 32, mask_zero=True),
+            tf.keras.layers.GlobalAveragePooling1D(),
+        ])
+
+    def call(self, inputs):
+        return tf.concat([
+            self.user_embedding(inputs["user"]),
+            self.source_topic_embedding(inputs["source_topic"])
+        ], axis=1)
+
+
+class SourceModel(tf.keras.Model):
+    nsource_id = ratings_df.source_id.nunique()
+
+    def __init__(self):
+        super().__init__()
+
+        self.source_embedding = keras.Sequential([
+            tf.keras.layers.IntegerLookup(
+                vocabulary=ratings_df["source_id"].unique(), mask_token=None),
+            tf.keras.layers.Embedding(self.nsource_id + 1, 15),
+        ])
+
+    def call(self, ratings):
+        return self.source_embedding(ratings["source_id"])
+
+
+class SourceRecommenderModel(tfrs.models.Model):
+
+    def __init__(self):
+        super(SourceRecommenderModel, self).__init__()
+        self.query_model = keras.Sequential([
+            UserModel(),
+            tf.keras.layers.Dense(32)
+        ])
+        self.candidate_model = keras.Sequential([
+            SourceModel(),
+            tf.keras.layers.Dense(32)
+        ])
+        self.task = tfrs.tasks.Retrieval(
+            metrics=tfrs.metrics.FactorizedTopK(
+                # nem jó
+                candidates=sources_ds.batch(128).map(self.candidate_model),
+            ),
+        )
+
+    def compute_loss(self, features, training=False):
+        query_embeddings = self.query_model({
+            "user": features["user"],
+            "topic": features["topic"],
+        })
+        sources_embeddings = self.candidate_model(features["source_id"])
+
+        return self.task(query_embeddings, sources_embeddings)
+
+
+Method for transfer data from excel to DB:
+
+source_model_file_path = os.path.join(BASE_DIR, 'calculator_app/source_model')
+source_model = keras.models.load_model(source_model_file_path)
+
+sources_file_path = os.path.join(BASE_DIR, 'calculator_app/res/sources.xlsx')
+sources = pandas.read_excel(sources_file_path, sheet_name="Sources")
+ratings = pandas.read_excel(sources_file_path, sheet_name="Ratings")
+
+
+def sources_to_db():
+    for index in sources.index:
+        source = {
+            "title": sources.loc[index, "title"],
+            "topic": sources.loc[index, "topic"],
+            "url": sources.loc[index, "url"],
+            "average_rating": sources.loc[index, "average_rating"],
+            "ratings_count": sources.loc[index, "ratings_count"],
+            "ratings_1": sources.loc[index, "ratings_1"],
+            "ratings_2": sources.loc[index, "ratings_2"],
+            "ratings_3": sources.loc[index, "ratings_3"],
+            "ratings_4": sources.loc[index, "ratings_4"],
+            "ratings_5": sources.loc[index, "ratings_5"]
+        }
+        serializer = SourceSerializer(data=source)
+        if serializer.is_valid():
+            serializer.save()
+
+
+def ratings_to_db():
+    for index in ratings.index:
+        rating = {
+            "source": ratings.loc[index, "source_id"],
+            "user": ratings.loc[index, "user_id"],
+            "rating": ratings.loc[index, "rating"]
+        }
+        serializer = RatingSerializer(data=rating)
+        if serializer.is_valid():
+            serializer.save()
